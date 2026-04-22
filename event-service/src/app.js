@@ -1,0 +1,38 @@
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+const swaggerUi = require('swagger-ui-express');
+
+const swaggerSpec = require('./config/swagger');
+const healthRoutes = require('./routes/health.routes');
+const eventRoutes = require('./routes/event.routes');
+const errorHandler = require('./middlewares/error.middleware');
+
+const app = express();
+
+const allowedOrigins = [
+  'https://eventhub-frontend-v2-smoky.vercel.app',
+  'http://localhost:5173'
+];
+
+app.use(cors({
+  origin: allowedOrigins
+}));
+app.use(morgan('dev'));
+app.use(express.json());
+
+app.use('/api/health', healthRoutes);
+app.use('/api/events', eventRoutes);
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'EventHub Node API',
+    docs: 'http://localhost:5000/api/docs'
+  });
+});
+
+app.use(errorHandler);
+
+module.exports = app;

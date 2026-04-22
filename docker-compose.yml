@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Database Service (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: eventhub_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: eventhub
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - eventhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Authentication Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: eventhub_auth_service
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DB_USER: postgres
+      DB_HOST: postgres
+      DB_NAME: eventhub
+      DB_PASSWORD: rootpassword
+      DB_PORT: 5432
+      JWT_SECRET: super_secret_jwt_key_shared_across_microservices
+      JWT_EXPIRES_IN: 24h
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - eventhub-network
+
+  # Event Service
+  event-service:
+    build:
+      context: ./event-service
+      dockerfile: Dockerfile
+    container_name: eventhub_event_service
+    environment:
+      NODE_ENV: production
+      PORT: 5002
+      DB_USER: postgres
+      DB_HOST: postgres
+      DB_NAME: eventhub
+      DB_PASSWORD: rootpassword
+      DB_PORT: 5432
+      JWT_SECRET: super_secret_jwt_key_shared_across_microservices
+      JWT_EXPIRES_IN: 24h
+    ports:
+      - "5002:5002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - eventhub-network
+
+volumes:
+  pgdata:
+
+networks:
+  eventhub-network:
+    driver: bridge
