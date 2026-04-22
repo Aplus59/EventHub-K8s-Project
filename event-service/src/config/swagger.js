@@ -10,12 +10,8 @@ const options = {
     },
     servers: [
       {
-        url: 'https://eventhub-node-api.onrender.com',
-        description: 'Production Server'
-      },
-      {
-        url: 'http://localhost:5000',
-        description: 'Local server'
+        url: 'http://localhost:5002',
+        description: 'Event Service (Local)'
       }
     ],
     components: {
