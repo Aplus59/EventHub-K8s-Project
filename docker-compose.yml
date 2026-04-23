@@ -29,13 +29,9 @@ services:
       dockerfile: Dockerfile
     container_name: eventhub_auth_service
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 5001
-      DB_USER: postgres
-      DB_HOST: postgres
-      DB_NAME: eventhub
-      DB_PASSWORD: rootpassword
-      DB_PORT: 5432
+      DATABASE_URL: postgresql://postgres:rootpassword@postgres:5432/eventhub
       JWT_SECRET: super_secret_jwt_key_shared_across_microservices
       JWT_EXPIRES_IN: 24h
     ports:
@@ -53,13 +49,9 @@ services:
       dockerfile: Dockerfile
     container_name: eventhub_event_service
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 5002
-      DB_USER: postgres
-      DB_HOST: postgres
-      DB_NAME: eventhub
-      DB_PASSWORD: rootpassword
-      DB_PORT: 5432
+      DATABASE_URL: postgresql://postgres:rootpassword@postgres:5432/eventhub
       JWT_SECRET: super_secret_jwt_key_shared_across_microservices
       JWT_EXPIRES_IN: 24h
     ports:
