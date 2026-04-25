@@ -1,0 +1,36 @@
+/* Styles pour la page 404 */
+.error-container {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.error-icon {
+  font-size: 64px;
+}
+
+.error-title {
+  font-family: var(--font-display);
+}
+
+/* Styles du bouton (optionnel – à adapter si besoin) */
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #005bb5;
+}

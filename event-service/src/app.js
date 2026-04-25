@@ -12,7 +12,9 @@ const app = express();
 
 const allowedOrigins = [
   'https://eventhub-frontend-v2-smoky.vercel.app',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://eventhub.local',
+  'http://127.0.0.1'
 ];
 
 app.use(cors({

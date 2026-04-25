@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eventhub-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: eventhub.local
+      http:
+        paths:
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 5000
+          - path: /api/participants
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 5000
+          - path: /api/registrations
+            pathType: Prefix
+            backend:
+              service:
+                name: event-service
+                port:
+                  number: 5000
+          - path: /api/dashboard
+            pathType: Prefix
+            backend:
+              service:
+                name: event-service
+                port:
+                  number: 5000
+          - path: /api/events
+            pathType: Prefix
+            backend:
+              service:
+                name: event-service
+                port:
+                  number: 5000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
