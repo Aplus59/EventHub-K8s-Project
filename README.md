@@ -1,67 +1,221 @@
-# EventHub Kubernetes (K8s) & Microservices Project
-
-Welcome to the newly structured Monorepo for the `Programmation Distribuée` Master Info assignment. This repository is now architecturally aligned to fully satisfy the grading criteria (up to 20/20) by utilizing Microservices, Docker, and Kubernetes.
 
 ---
 
-## ✅ What Has Been Completed (Backend Phase)
-*Completed by Person B (Backend Developer)*
+# EventHub — Plateforme de gestion d'événements
 
-1. **Monorepo Migration**
-   - The old monolithic codebase has been restructured into a clean Monorepo.
-   - Isolated sub-directories (`auth-service/`, `event-service/`, and `db/`) were created.
-   
-2. **Microservices Decoupling (14/20 Mark Target)**
-   - The monolithic Node.js backend has been completely decoupled into two independent microservices:
-     - **`auth-service`**: Exclusively handles Participants' CRUD and JWT authentication.
-     - **`event-service`**: Exclusively handles Events' CRUD and Registration logic.
-   - Code redundancy (routes, controllers, swagger documentation) was entirely removed from both services.
+EventHub est une application web de gestion d'événements développée en architecture microservices, containerisée avec Docker et orchestrée avec Kubernetes.
 
-3. **Advanced API Dockerization (18/20 Mark Security Consideration)**
-   - Created highly optimized `Dockerfile`s for both services utilizing **Multi-stage builds** (reducing image size to < 100MB).
-   - Applied **Security Hardening**: The containers run under a non-root user (`USER 1001`) preventing root privilege escalation.
-   - Integrated internal `HEALTHCHECK` instructions.
-
-4. **Database Automation (16/20 Mark Target)**
-   - Extracted the SQL database schema into `db/init.sql`.
-   - The PostgreSQL container now automatically executes this schema upon initialization. No manual table creation is explicitly required.
-
-5. **Local Orchestration Setup**
-   - Built a master `docker-compose.yml` that correctly bootstraps the local environment.
-   - It networks `postgres`, `auth-service`, and `event-service` together asynchronously.
-   - **Status**: Tested and verified. Everything works perfectly via `docker compose up --build`.
+**Binôme :** Rica Mouele Yandza Itotoba + Khanh Nguyen Ho Bao
+**Cours :** Master 1 — Programmation Distribuée
+**GitHub :** https://github.com/Aplus59/EventHub-K8s-Project
 
 ---
 
-## 🚀 Teammate Action Items (Frontend & K8s Phase)
-*Assigned to Person A (Frontend & DevOps Developer)*
+## Architecture
 
-Your foundation is ready! Please execute the following sequence to complete our project:
-
-### 1. Integrate the React Frontend
-- Move the old `eventhub-frontend-v2` directory into this root folder.
-- Write a multi-stage `Dockerfile` inside the React folder (Use `node` for building and `nginx:alpine` for serving the static files).
-
-### 2. Push Images to Docker Hub (MANDATORY)
-- Build the 3 container images (Frontend, Auth-Service, Event-Service).
-- Push all of them to your public Docker Hub registry (e.g., `docker push your-username/auth-service:v1`).
-
-### 3. Write Kubernetes YAML Manifests (16/20 Mark)
-Based strictly on the variables mapping in our `docker-compose.yml`, write the equivalent Kubernetes manifests inside a new `.k8s/` folder:
-- **Deployments & Services:** For `frontend`, `auth-service`, and `event-service`.
-- **StatefulSet/Persistent Volume Claim (PVC):** For the PostgreSQL database to preserve data.
-
-### 4. Implement Cluster Security & Ingress (18/20 Mark)
-- **Secrets:** Convert the environment variables (`JWT_SECRET`, `POSTGRES_PASSWORD`) into K8s Secrets instead of hardcoding them in deployments.
-- **Ingress Gateway:** Write an `ingress.yaml` file to expose Minikube. Route `/` to the React frontend, `/api/auth` to the `auth-service`, and `/api/events` to the `event-service`.
-
-### 5. Bonus: Cloud Deployment (20/20 Mark)
-- Once everything works smoothly on local `minikube tunnel`, deploy these manifests to a public Cloud provider (e.g., Google Cloud Labs/GKE).
+```
+EventHub-K8s-Project/
+├── auth-service/              # Microservice authentification (Node.js)
+├── event-service/             # Microservice événements (Node.js)
+├── eventhub-frontend-v2/      # Frontend React + Vite
+│   ├── Dockerfile             # Build multi-stage Vite + Nginx
+│   └── nginx.conf             # Configuration Nginx
+├── db/
+│   └── init.sql               # Schéma PostgreSQL (auto-exécuté)
+├── docker-compose.yml         # Orchestration locale
+└── k8s/                       # Manifestes Kubernetes
+    ├── secrets.yaml           # Credentials encodés base64
+    ├── rbac.yaml              # ServiceAccount + Role + RoleBinding
+    ├── network-policy.yaml    # Isolation réseau PostgreSQL
+    ├── postgres-deployment.yaml # BDD + PV + PVC + ConfigMap
+    ├── auth-deployment.yaml
+    ├── event-deployment.yaml
+    ├── frontend-deployment.yaml
+    └── ingress.yaml           # Gateway HTTP/HTTPS
+```
 
 ---
 
-## ⚠️ Important Developer Notes
+## Composants
 
-- **Database Shared Pattern:** The `auth` and `event` microservices share the same `eventhub` PostgreSQL database physically. This is an intentional design choice to prioritize ACID consistency in our specific registration workflow over complex event brokers.
-- **Microservices Communication:** The two backend services communicate *statelessly* via the `JWT_SECRET`. They do not make direct HTTP requests to each other. Both services must have the exact same `JWT_SECRET` configured in their K8s environment variables to parse the login token properly.
-- **To test the current setup locally without K8s:** Simply run `docker compose up` at the project root. You will be able to access the Swagger UIs at `localhost:5001/api/docs` and `localhost:5002/api/docs`.
+| Service | Technologie | Port | Rôle |
+|---|---|---|---|
+| auth-service | Node.js / Express | 5000 | Login, signup, JWT, participants |
+| event-service | Node.js / Express | 5000 | Événements, inscriptions, dashboard |
+| frontend | React + Vite + Nginx | 80 | Interface utilisateur |
+| PostgreSQL | postgres:15-alpine | 5432 | Base de données persistante |
+
+---
+
+## Images Docker Hub
+
+Les 3 images sont publiques sur Docker Hub sous le compte `ricaml` :
+
+Pour linux
+- `ricaml/auth-service:v3`
+- `ricaml/event-service:v3`
+- `ricaml/eventhub-frontend:v3`
+
+Pour Mac
+- `ricaml/auth-service:v2`
+- `ricaml/event-service:v2`
+- `ricaml/eventhub-frontend:v2`
+
+https://hub.docker.com/u/ricaml
+
+---
+
+## Prérequis
+
+- Docker Desktop installé et démarré
+- Minikube installé
+- kubectl installé
+
+---
+
+## Lancer le projet en local (Minikube)
+
+### 1. Démarre Minikube
+
+```bash
+minikube start --memory=4096 --cpus=2
+```
+
+### 2. Active l'Ingress
+
+```bash
+minikube addons enable ingress
+kubectl get pods -n ingress-nginx --watch
+# Attends que ingress-nginx-controller soit Running
+```
+
+### 3. Déploie dans l'ordre
+
+```bash
+kubectl apply -f k8s/rbac.yaml
+kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/network-policy.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
+
+# Attends que PostgreSQL soit prêt
+kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s
+
+kubectl apply -f k8s/auth-deployment.yaml
+kubectl apply -f k8s/event-deployment.yaml
+kubectl apply -f k8s/frontend-deployment.yaml
+kubectl apply -f k8s/ingress.yaml
+```
+
+### 4. Vérifie que tout tourne
+
+```bash
+kubectl get pods
+# Tous les pods doivent être en statut Running
+```
+
+### 5. Configure l'accès
+
+```bash
+# Ajoute eventhub.local dans /etc/hosts
+echo "127.0.0.1 eventhub.local" | sudo tee -a /etc/hosts
+
+# Lance le tunnel dans un terminal séparé
+sudo minikube tunnel
+```
+
+### 6. Accède à l'application
+
+Ouvre **https://eventhub.local** dans Chrome.
+
+---
+
+## Créer un utilisateur admin
+
+```bash
+# Génère un hash bcrypt
+kubectl exec -it deployment/auth-service -- node -e \
+  "const b=require('bcryptjs');b.hash('TonMotDePasse',10).then(h=>console.log(h))"
+
+# Ouvre psql
+kubectl exec -it deployment/postgres -- psql -U postgres -d eventhub
+
+# Insère l'admin
+INSERT INTO eventhub.users (username, first_name, last_name, email, password_hash, role, status)
+VALUES ('admin', 'Admin', 'User', 'admin@eventhub.com', 'HASH_ICI', 'admin', 'active');
+\q
+```
+
+---
+
+## Test rapide avec Docker Compose (sans Kubernetes)
+
+```bash
+docker compose up --build
+```
+
+- auth-service disponible sur http://localhost:5001/api/docs
+- event-service disponible sur http://localhost:5002/api/docs
+
+---
+
+## Sécurité implémentée
+
+| Mécanisme | Détail |
+|---|---|
+| Secrets K8s | Credentials encodés base64, jamais en clair |
+| RBAC | ServiceAccount `backend-sa` avec permissions minimales |
+| NetworkPolicy | Seuls auth-service et event-service accèdent à PostgreSQL |
+| Images non-root | Conteneurs tournent sous USER 1001 |
+| HTTPS / TLS | Certificat TLS auto-signé, Ingress sur port 443 |
+
+---
+
+## Vérification de la sécurité
+
+```bash
+# Vérifie les permissions RBAC
+kubectl auth can-i get secrets --as=system:serviceaccount:default:backend-sa
+# → yes
+
+kubectl auth can-i delete pods --as=system:serviceaccount:default:backend-sa
+# → no
+
+# Vérifie l'isolation réseau
+kubectl describe networkpolicy postgres-isolation
+
+# Vue globale sécurité
+kubectl get roles,rolebindings,serviceaccounts,networkpolicies,secrets
+```
+
+---
+
+## API Documentation (Swagger)
+
+Accessible uniquement en local via Docker Compose :
+
+- Auth API : http://localhost:5001/api/docs
+- Events API : http://localhost:5002/api/docs
+
+---
+
+## Fonctionnalités
+
+- Authentification JWT (login / signup / logout)
+- Gestion des événements (création, modification, suppression) — admin uniquement
+- Inscription aux événements — participants
+- Dashboard administrateur avec statistiques
+- Interface multilingue (français / anglais)
+- Thème clair / sombre
+- Documentation API Swagger
+
+---
+
+## Barème atteint
+
+|  Réalisation |
+|---|---|
+| Dockerfile multi-stage, Docker Hub, Deployments + Services K8s |
+| Ingress Gateway Nginx avec routage HTTP/HTTPS |
+| 2 microservices Node.js indépendants reliés via K8s DNS |
+| PostgreSQL avec PersistentVolume + PVC + init.sql automatique |
+| Secrets + RBAC + NetworkPolicy + Images non-root + HTTPS/TLS |
