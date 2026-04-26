@@ -209,13 +209,3 @@ Accessible uniquement en local via Docker Compose :
 - Documentation API Swagger
 
 ---
-
-## Barème atteint
-
-|  Réalisation |
-|---|---|
-| Dockerfile multi-stage, Docker Hub, Deployments + Services K8s |
-| Ingress Gateway Nginx avec routage HTTP/HTTPS |
-| 2 microservices Node.js indépendants reliés via K8s DNS |
-| PostgreSQL avec PersistentVolume + PVC + init.sql automatique |
-| Secrets + RBAC + NetworkPolicy + Images non-root + HTTPS/TLS |
