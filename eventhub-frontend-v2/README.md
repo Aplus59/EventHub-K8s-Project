@@ -1,4 +1,3 @@
-
 ---
 
 # EventHub — Plateforme de gestion d'événements
